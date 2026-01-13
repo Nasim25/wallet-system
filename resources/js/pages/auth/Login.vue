@@ -1,6 +1,6 @@
 <template>
     <div
-        class="max-w-md mx-auto mt-20 p-6 bg-white rounded shadow hover:-translate-y-1 ease-in duration-200"
+        class="max-w-md mx-auto mt-20 p-6 rounded-2xl shadow hover:-translate-y-1 ease-in duration-200 card text-left border-l-4 border-l-emerald-500"
     >
         <h1 class="text-2xl font-bold mb-4">Login</h1>
         <input
@@ -17,7 +17,7 @@
         />
         <button
             @click="login"
-            class="bg-green-500 text-white w-full py-2 rounded"
+            class="bg-green-500 text-white w-full py-2 rounded cursor-pointer"
         >
             Login
         </button>

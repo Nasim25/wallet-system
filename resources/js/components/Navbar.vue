@@ -1,5 +1,7 @@
 <template>
-    <nav class="bg-blue-600 text-white p-4 flex justify-between items-center">
+    <nav
+        class="bg-transparent text-white p-4 flex justify-between items-center"
+    >
         <div class="font-bold">WalletSystem</div>
         <div>
             <button
