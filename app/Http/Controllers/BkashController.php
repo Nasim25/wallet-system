@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 use App\Services\Payments\Gateways\BkashGateway;
@@ -12,53 +14,125 @@ class BkashController extends Controller
 {
     public function __construct(private BkashGateway $bkash) {}
 
-    public function callback(Request $request)
+    public function agreementCallback(Request $request)
     {
-        $status = $request->get('status');
-        $paymentId = $request->get('paymentID');
+        return $this->handleBkashCallback(
+            $request,
+            fn($paymentId) => $this->bkash->executeAgreement($paymentId),
+            function (User $user, array $response) {
 
-        if ($status === 'cancel' || $status === 'failure') {
-            $frontend_url = rtrim(config('app.url'), '/') . '/dashboard?error=cancelled_by_user';
-            return redirect()->to($frontend_url);
+                if (empty($response['agreementID'])) {
+                    throw new \Exception('Agreement ID missing');
+                }
+
+                $user->wallet()->updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'agreement_token' => $response['agreementID'],
+                        'masked_number'   => $response['payerAccount'] ?? null,
+                    ]
+                );
+
+                return $this->redirectSuccess('agreement=created');
+            }
+        );
+    }
+
+
+    public function paymentCallback(Request $request)
+    {
+        return $this->handleBkashCallback(
+            $request,
+            fn($paymentId) => $this->bkash->executeAgreement($paymentId),
+            function (User $user, array $response) {
+
+                if (
+                    empty($response['trxID']) ||
+                    ($response['transactionStatus'] ?? null) !== 'Completed'
+                ) {
+                    throw new \Exception('Invalid payment response');
+                }
+
+                $wallet = $user->wallet;
+
+                if (!$wallet) {
+                    throw new \Exception('Wallet not found');
+                }
+
+                $exists = Transaction::where('trx_id', $response['trxID'])->exists();
+
+                if (!$exists) {
+                    DB::transaction(function () use ($wallet, $response) {
+                        $wallet->credit(
+                            amount: (float) $response['amount'],
+                            trxId: $response['trxID'],
+                            paymentId: $response['paymentID']
+                        );
+                    });
+                }
+
+                return $this->redirectSuccess('payment=success');
+            }
+        );
+    }
+
+    private function handleBkashCallback(
+        Request $request,
+        callable $executor,
+        callable $onSuccess
+    ) {
+        $status    = $request->string('status');
+        $paymentId = $request->string('paymentID');
+
+        if (in_array($status, ['cancel', 'failure'], true)) {
+            return $this->redirectError('cancelled_by_user');
         }
 
-        $sessionPaymentId = Redis::get($paymentId);
+        $userId = Redis::get("bkash:payment:{$paymentId}");
 
-        if (!$sessionPaymentId) {
-            $frontend_url = rtrim(config('app.url'), '/') . '/dashboard?error=something_went_wrong';
-            return redirect()->to($frontend_url);
+        if (!$userId) {
+            return $this->redirectError('invalid_callback');
+        }
+
+        $user = User::find($userId);
+
+        if (!$user) {
+            return $this->redirectError('user_not_found');
         }
 
         try {
-            $response = $this->bkash->executeAgreement($paymentId);
+            $response = $executor($paymentId);
 
-            if ($response['statusCode'] !== '0000') {
-                throw new \Exception($response['statusMessage'] ?? 'Agreement execution failed');
+            if (($response['statusCode'] ?? null) !== '0000') {
+                throw new \Exception($response['statusMessage'] ?? 'bKash execution failed');
             }
 
-            // Check if this is agreement creation or payment
-            if (isset($response['agreementID'])) {
+            $result = $onSuccess($user, $response, $paymentId);
 
-                $user = User::find($sessionPaymentId);
+            Redis::del("bkash:payment:{$paymentId}");
 
-                if (!$user) {
-                    throw new \Exception('User not found for agreement');
-                }
-                $wallet = $user->wallet()->create([
-                    'agreement_token' => $response['agreementID'],
-                    'masked_number' => $response['payerAccount'] ?? null,
-                ]);
+            return $result;
+        } catch (\Throwable $e) {
+            Log::error('bKash Callback Error', [
+                'paymentID' => $paymentId,
+                'error'     => $e->getMessage(),
+            ]);
 
-                $frontend_url = rtrim(config('app.url'), '/') . '/dashboard?agreement=created';
-                return redirect()->to($frontend_url);
-            }
-
-
-            return redirect()->route('wallet.index')->with('success', __('messages.payment_success'));
-        } catch (\Exception $e) {
-            Log::error('bKash Callback Error', ['error' => $e->getMessage()]);
-            $frontend_url = rtrim(config('app.url'), '/') . '/dashboard?error=something_went_wrong';
-            return redirect()->to($frontend_url);
+            return $this->redirectError('something_went_wrong');
         }
+    }
+
+    private function redirectError(string $code)
+    {
+        return redirect()->to(
+            rtrim(config('app.url'), '/') . "/dashboard?error={$code}"
+        );
+    }
+
+    private function redirectSuccess(string $query)
+    {
+        return redirect()->to(
+            rtrim(config('app.url'), '/') . "/dashboard?{$query}"
+        );
     }
 }

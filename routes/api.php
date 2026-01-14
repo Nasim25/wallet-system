@@ -15,12 +15,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-    Route::post('/wallet/agreement', [PaymentController::class, 'createAgreement']);
-    Route::post('/payment/create', [PaymentController::class, 'create']);
+    Route::controller(PaymentController::class)->group(function () {
+        Route::post('/wallet/agreement', 'createAgreement');
+        Route::post('/payment/create', 'createPayment');
+    });
+
 
     Route::controller(WalletController::class)->group(function () {
         Route::get('/wallet', 'index');
     });
 });
 
-Route::get('/bkash/callback', [BkashController::class, 'callback'])->name('bkash.callback');
+Route::get('/bkash/agreement/callback', [BkashController::class, 'agreementCallback'])->name('bkash.agreement.callback');
+Route::get('/bkash/payment/callback', [BkashController::class, 'paymentCallback'])->name('bkash.payment.callback');

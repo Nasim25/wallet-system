@@ -2,6 +2,7 @@
 
 namespace App\Services\Payments\Gateways;
 
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
@@ -66,16 +67,19 @@ class BkashGateway implements PaymentGatewayInterface
             [
                 'mode' => '0000',
                 'payerReference' => 'USER_' . $data['user_id'],
-                'callbackURL' => route('bkash.callback'),
+                'callbackURL' => route('bkash.agreement.callback'),
             ]
         );
 
-        if ($response->failed()) {
-            Log::error('bKash Create Agreement Error', ['response' => $response->json()]);
+        if ($response->failed() || empty($response['paymentID'])) {
             throw new \Exception('Failed to create agreement');
         }
 
-        Redis::setex($response['paymentID'], 3600, $data['user_id']); // Store paymentID temporarily
+        Redis::setex(
+            "bkash:payment:{$response['paymentID']}",
+            900,
+            $data['user_id']
+        );
 
         return $response->json();
     }
@@ -92,17 +96,41 @@ class BkashGateway implements PaymentGatewayInterface
             'paymentID' => $paymentId,
         ]);
 
-        if ($response->failed()) {
-            Log::error('bKash Execute Agreement Error', ['response' => $response->json()]);
-            throw new \Exception('Failed to execute agreement');
+        if ($response->failed() || empty($response['paymentID'])) {
+            throw new \Exception('Failed Bkash execute');
         }
 
         return $response->json();
     }
 
-    public function chargeWithAgreement(array $data): array
+    public function createPayment(array $data): array
     {
-        return [];
+        $token = $this->getToken();
+
+        $response = Http::withHeaders([
+            'Authorization' => "Bearer {$token}",
+            'X-APP-Key' => $this->appKey,
+        ])->post("{$this->baseUrl}/tokenized/checkout/create", [
+            'mode' => '0001',
+            'payerReference' => $data['user_id'],
+            'callbackURL' => route('bkash.payment.callback'),
+            'agreementID' => $data['agreement_token'],
+            'amount' => number_format($data['amount'], 2, '.', ''),
+            'currency' => 'BDT',
+            'intent' => 'sale',
+            'merchantInvoiceNumber' => 'INV_' . $data['user_id'] . Str::random(10),
+        ]);
+
+        if ($response->failed() || empty($response['paymentID'])) {
+            throw new \Exception('Failed bkash create payment');
+        }
+
+        Redis::setex(
+            "bkash:payment:{$response['paymentID']}",
+            900,
+            $data['user_id']
+        );
+        return $response->json();
     }
 
     public function refund(array $data): array
