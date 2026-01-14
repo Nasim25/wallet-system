@@ -9,6 +9,7 @@ use App\Http\Controllers\WalletController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\LocalizationController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -31,6 +32,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::post('/refund', [RefundController::class, 'processRefund'])->name('refund.process');
+
+    Route::post('/locale/switch', [LocalizationController::class, 'setLocale'])->name('locale.switch');
 });
 
 Route::get('/bkash/agreement/callback', [BkashController::class, 'agreementCallback'])->name('bkash.agreement.callback');
