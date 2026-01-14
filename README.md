@@ -1,59 +1,124 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+**README.md**
+```markdown
+# bKash Wallet Integration System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A robust wallet system built with Laravel 12 + Vue.js 3, featuring bKash Tokenized Checkout integration.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Secure user authentication
+- bKash account linking (Agreement-based)
+- Add money with atomic transactions
+- Transaction history with pagination
+- PDF statement generation (Gotenberg)
+- Multi-language support (English/Bangla)
+- Redis-based payment locking (prevent double submission)
+- Partial refund support
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Tech Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Backend**: Laravel 12 (PHP 8.2)
+- **Frontend**: Vue.js 3 + Tailwind CSS
+- **Database**: MySQL 8.0
+- **Cache/Locks**: Redis 7
+- **PDF Generation**: Gotenberg
+- **Payment Gateway**: bKash Tokenized Checkout
 
-## Learning Laravel
+## Architecture Decisions
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 1. Monolithic Architecture
+Chose Laravel + Vue.js monolith over separate frontend because:
+- Laravel Sanctum (Session / Token-based)
+- Easier deployment
+- Better for this project scope
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 2. Redis for Atomic Locks
+Used Redis `SETNX` to prevent race conditions during payment:
+- Prevents double-submission when user clicks "Pay" multiple times
+- 120-second lock expiry
+- Automatic cleanup after transaction
 
-## Laravel Sponsors
+### 3. Encrypted Agreement Tokens
+bKash agreement tokens are encrypted in database using Laravel's Crypt facade:
+- Protects sensitive payment credentials
+- Automatic encryption/decryption via model accessors
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 4. Gotenberg for PDF (NOT DomPDF)
+Using Gotenberg microservice instead of DomPDF:
+- Better HTML/CSS rendering
+- Handles complex layouts
+- Faster performance
+- Dockerized service
+```
 
-### Premium Partners
+```bash
+## Installation
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Prerequisites
+- PHP 8.2+
+- Composer
+- Node.js 18+
+- MySQL 8.0+
+- Docker & Docker Compose
+```
 
-## Contributing
+### Step 1: Clone Repository
+```bash
+git clone https://github.com/Nasim25/wallet-system.git
+cd bkash-wallet
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Step 2: Install Dependencies
+```bash
+composer install
+npm install
+```
 
-## Code of Conduct
+### Step 3: Environment Setup
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Edit `.env`:
+```env
+DB_DATABASE=bkash_wallet
+DB_USERNAME=root
+DB_PASSWORD=your_password
 
-## Security Vulnerabilities
+BKASH_BASE_URL=https://tokenized.sandbox.bka.sh/v1.2.0-beta
+BKASH_APP_KEY=your_app_key
+BKASH_APP_SECRET=your_app_secret
+BKASH_USERNAME=your_username
+BKASH_PASSWORD=your_password
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+GOTENBERG_URL=http://localhost:3000
+```
 
-## License
+### Step 4: Database Migration
+```bash
+php artisan migrate
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Step 5: Start Docker Services
+```bash
+docker-compose up -d
+```
+
+### Step 6: Build Frontend
+```bash
+npm run dev
+```
+
+### Step 7: Start Laravel
+```bash
+php artisan serve
+```
+
+Visit: `http://localhost:8000`
+
+
+## Author
+
+Md Nasim Uddin (nasimuddin1140@gmail.com)
+

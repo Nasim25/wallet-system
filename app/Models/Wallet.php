@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,6 +30,18 @@ class Wallet extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    // Encrypt agreement token when setting
+    public function setAgreementTokenAttribute($value): void
+    {
+        $this->attributes['agreement_token'] = Crypt::encryptString($value);
+    }
+
+    // Decrypt agreement token when getting
+    public function getAgreementTokenAttribute($value): string
+    {
+        return Crypt::decryptString($value);
     }
 
     public function credit(float $amount, string $trxId, $paymentId = null): Transaction
