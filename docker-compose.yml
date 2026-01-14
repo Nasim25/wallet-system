@@ -1,0 +1,46 @@
+services:
+  # --------------------------------------
+  # Redis
+  # --------------------------------------
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - bkash_network
+
+  # --------------------------------------
+  # Gotenberg (PDF generator)
+  # --------------------------------------
+  gotenberg:
+    image: gotenberg/gotenberg:7
+    container_name: gotenberg
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - bkash_network
+    environment:
+      - GOTENBERG_API_TIMEOUT=30s
+    command:
+      - "gotenberg"
+      - "--api-timeout=30s"
+      - "--log-level=info"
+
+# --------------------------------------
+# Volumes
+# --------------------------------------
+volumes:
+  redis_data:
+    driver: local
+
+# --------------------------------------
+# Network
+# --------------------------------------
+networks:
+  bkash_network:
+    driver: bridge
