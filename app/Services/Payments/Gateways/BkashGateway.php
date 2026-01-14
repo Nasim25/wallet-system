@@ -54,7 +54,7 @@ class BkashGateway implements PaymentGatewayInterface
     }
 
 
-    public function createAgreement(array $data): array
+    public function createAgreement(array $data)
     {
         $token = $this->getToken();
 
@@ -103,7 +103,7 @@ class BkashGateway implements PaymentGatewayInterface
         return $response->json();
     }
 
-    public function createPayment(array $data): array
+    public function createPayment(array $data)
     {
         $token = $this->getToken();
 
@@ -135,7 +135,7 @@ class BkashGateway implements PaymentGatewayInterface
 
 
     // Refund Transaction
-    public function refundPayment(array $data): array
+    public function refundPayment(array $data)
     {
         $token = $this->getToken();
 

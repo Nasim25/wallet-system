@@ -125,7 +125,7 @@ class BkashController extends Controller
     private function redirectError(string $code)
     {
         return redirect()->to(
-            rtrim(config('app.url'), '/') . "/dashboard?error={$code}"
+            rtrim(config('app.url'), '/') . "/error?error={$code}"
         );
     }
 
