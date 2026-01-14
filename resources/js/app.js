@@ -1,9 +1,11 @@
-import '../css/app.css';
+import "../css/app.css";
 import { createApp } from "vue";
 import router from "./router";
 import App from "./App.vue";
 import axios from "axios";
-import { i18n } from './i18n';
+import { i18n } from "./i18n";
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
 
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL = "http://127.0.0.1:8000";
@@ -12,5 +14,6 @@ axios.defaults.headers.common["Accept"] = "application/json";
 const app = createApp(App);
 app.config.globalProperties.$axios = axios;
 app.use(router);
-app.use(i18n)
+app.use(i18n);
+app.use(Toast);
 app.mount("#app");
