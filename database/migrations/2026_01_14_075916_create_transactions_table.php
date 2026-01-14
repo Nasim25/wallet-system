@@ -15,7 +15,7 @@ return new class extends Migration
             Schema::create('transactions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('wallet_id')->constrained()->cascadeOnDelete();
-                $table->string('trx_id', 100)->unique();
+                $table->string('trx_id', 100);
                 $table->string('payment_id', 100)->nullable();
                 $table->enum('type', ['credit', 'debit', 'refund']);
                 $table->decimal('amount', 15, 2);

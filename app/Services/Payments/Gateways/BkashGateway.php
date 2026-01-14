@@ -133,8 +133,28 @@ class BkashGateway implements PaymentGatewayInterface
         return $response->json();
     }
 
-    public function refund(array $data): array
+
+    // Refund Transaction
+    public function refundPayment(array $data): array
     {
-        return [];
+        $token = $this->getToken();
+
+        $response = Http::withHeaders([
+            'Authorization' => "Bearer {$token}",
+            'X-APP-Key' => $this->appKey,
+        ])->post("{$this->baseUrl}/tokenized/checkout/payment/refund", [
+            'paymentID' => $data['payment_id'],
+            'trxID' => $data['trx_id'],
+            'amount' => number_format($data['amount'], 2, '.', ''),
+            'reason' => $data['reason'],
+            'sku' => 'wallet-refund',
+        ]);
+
+        if ($response->failed()) {
+            Log::error('bKash Refund Error', ['response' => $response->json()]);
+            throw new \Exception('Failed to process refund');
+        }
+
+        return $response->json();
     }
 }

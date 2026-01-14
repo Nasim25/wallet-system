@@ -45,12 +45,13 @@
                             </span>
                         </td>
                         <td>
-                            <button :disabled="tx.type !== 'credit'" :class="[
-                                'px-3 text-sm py-1 rounded-lg cursor-pointer',
-                                tx.type === 'credit'
-                                    ? 'bg-red-500 text-white hover:bg-red-600'
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            ]">
+                            <button @click="openRefundModal(tx)" :disabled="tx.type !== 'credit' || tx.amount <= 0"
+                                :class="[
+                                    'px-3 text-sm py-1 rounded-lg',
+                                    tx.type === 'credit' && tx.amount > 0
+                                        ? 'bg-red-500 text-white hover:bg-red-600'
+                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                ]">
                                 Refund
                             </button>
                         </td>
@@ -76,19 +77,74 @@
                 Next
             </button>
         </div>
+
+        <!-- Refund Modal -->
+        <div v-if="showRefundModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+
+            <div class="bg-white w-full max-w-md rounded-2xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold mb-4">Refund Transaction</h3>
+
+                <div class="space-y-3">
+                    <div class="text-sm text-gray-600">
+                        Refundable Amount:
+                        <span class="font-semibold text-gray-900">
+                            ৳ {{ selectedTx?.amount }}
+                        </span>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Refund Amount
+                        </label>
+                        <input type="number" v-model="refundAmount" :max="selectedTx?.amount" min="1"
+                            class="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-pink-300"
+                            placeholder="Enter refund amount" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Refund Reason
+                        </label>
+                        <input type="text" v-model="refundReason"
+                            class="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-pink-300"
+                            placeholder="Enter reason for refund" />
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6">
+                    <button @click="closeRefundModal" class="px-4 py-2 rounded-lg border hover:bg-gray-100">
+                        Cancel
+                    </button>
+
+                    <button @click="confirmRefund"
+                        :disabled="refundAmount <= 0 || refundAmount > selectedTx?.amount || refundLoading"
+                        class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 disabled:opacity-50">
+                        {{ refundLoading ? 'Processing...' : 'Confirm Refund' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
+import { useToast } from 'vue-toastification'
 
+const toast = useToast()
 const transactions = ref([])
 const loading = ref(false)
 const currentPage = ref(1)
 const lastPage = ref(1)
 const prevPageUrl = ref(null)
 const nextPageUrl = ref(null)
+
+const showRefundModal = ref(false)
+const selectedTx = ref(null)
+const refundAmount = ref(0)
+const refundReason = ref('')
+const refundLoading = ref(false)
 
 /**
  * Fetch transactions
@@ -167,6 +223,50 @@ async function downloadStatement() {
     }
 }
 
+async function confirmRefund() {
+    if (!selectedTx.value) return
+
+    refundLoading.value = true
+    const token = localStorage.getItem('token')
+
+    try {
+        await axios.post(
+            `/api/refund`,
+            {
+                amount: refundAmount.value,
+                transaction_id: selectedTx.value.id,
+                reason: refundReason.value
+            },
+            {
+                headers: { Authorization: `Bearer ${token}` },
+            }
+        )
+
+        closeRefundModal()
+        fetchTransactions(currentPage.value)
+        toast.success('Refund successful');
+    } catch (error) {
+        console.error(error)
+        toast.error(error.response?.data?.message || 'Refund failed')
+    } finally {
+        refundLoading.value = false
+
+    }
+}
+
+function openRefundModal(tx) {
+    selectedTx.value = tx
+    refundAmount.value = tx.amount
+    refundReason.value = ''
+    showRefundModal.value = true
+}
+
+function closeRefundModal() {
+    showRefundModal.value = false
+    selectedTx.value = null
+    refundReason.value = ''
+    refundAmount.value = 0
+}
 
 
 onMounted(() => fetchTransactions())

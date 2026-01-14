@@ -49,7 +49,7 @@ class Wallet extends Model
     }
 
     // Deduct amount from wallet
-    public function debit(float $amount, string $trxId): Transaction
+    public function refund(float $amount, string $trxId): Transaction
     {
         if ($this->balance < $amount) {
             throw new \Exception('Insufficient balance');
@@ -61,7 +61,7 @@ class Wallet extends Model
 
             return $this->transactions()->create([
                 'trx_id' => $trxId,
-                'type' => 'debit',
+                'type' => 'refund',
                 'amount' => $amount,
                 'balance_after' => $this->balance,
                 'status' => 'completed',

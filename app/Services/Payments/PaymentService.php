@@ -28,4 +28,16 @@ class PaymentService
             'user_id' => $user->id
         ]);
     }
+
+    public function refundPayment(string $paymentId, string $trxId, float $amount, string $reason, string $gatewayName = 'bkash'): array
+    {
+        $gateway = PaymentManager::make($gatewayName);
+
+        return $gateway->refundPayment([
+            'payment_id' => $paymentId,
+            'trx_id' => $trxId,
+            'amount' => $amount,
+            'reason' => $reason,
+        ]);
+    }
 }

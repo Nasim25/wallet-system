@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BkashController;
+use App\Http\Controllers\RefundController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Auth\AuthController;
@@ -28,6 +29,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::controller(WalletController::class)->group(function () {
         Route::get('/wallet', 'index');
     });
+
+    Route::post('/refund', [RefundController::class, 'processRefund'])->name('refund.process');
 });
 
 Route::get('/bkash/agreement/callback', [BkashController::class, 'agreementCallback'])->name('bkash.agreement.callback');

@@ -8,5 +8,5 @@ interface PaymentGatewayInterface
 
     public function createPayment(array $data): array;
 
-    public function refund(array $data): array;
+    public function refundPayment(array $data): array;
 }
