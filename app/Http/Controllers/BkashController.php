@@ -18,15 +18,15 @@ class BkashController extends Controller
         $paymentId = $request->get('paymentID');
 
         if ($status === 'cancel' || $status === 'failure') {
-            return redirect()->route('wallet.index')
-                ->with('error', __('wallet.payment_cancelled'));
+            $frontend_url = rtrim(config('app.url'), '/') . '/dashboard?error=cancelled_by_user';
+            return redirect()->to($frontend_url);
         }
 
         $sessionPaymentId = Redis::get($paymentId);
 
         if (!$sessionPaymentId) {
-            return redirect()->route('wallet.index')
-                ->with('error', __('wallet.invalid_payment'));
+            $frontend_url = rtrim(config('app.url'), '/') . '/dashboard?error=something_went_wrong';
+            return redirect()->to($frontend_url);
         }
 
         try {
@@ -49,15 +49,16 @@ class BkashController extends Controller
                     'masked_number' => $response['payerAccount'] ?? null,
                 ]);
 
-                return redirect()->route('wallet.index')
-                    ->with('success', __('wallet.agreement_created'));
+                $frontend_url = rtrim(config('app.url'), '/') . '/dashboard?agreement=created';
+                return redirect()->to($frontend_url);
             }
 
 
             return redirect()->route('wallet.index')->with('success', __('messages.payment_success'));
         } catch (\Exception $e) {
             Log::error('bKash Callback Error', ['error' => $e->getMessage()]);
-            return redirect()->route('wallet.index')->with('error', __('messages.payment_failed'));
+            $frontend_url = rtrim(config('app.url'), '/') . '/dashboard?error=something_went_wrong';
+            return redirect()->to($frontend_url);
         }
     }
 }

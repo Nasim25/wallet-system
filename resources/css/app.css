@@ -11,23 +11,6 @@
         "Noto Color Emoji";
 }
 
-@layer base {
-    body {
-        @apply text-slate-400;
-        background-image: radial-gradient(
-                circle at 50% 0%,
-                rgba(226, 19, 110, 0.15) 0%,
-                transparent 50%
-            ),
-            linear-gradient(
-                to top,
-                oklch(0.13 0.04 327.98),
-                oklch(0.2 0.08 325.83)
-            );
-        background-color: #020617;
-    }
-}
-
 @layer components {
     .card {
         background: rgba(15, 23, 42, 0.6);
