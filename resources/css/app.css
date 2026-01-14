@@ -11,6 +11,12 @@
         "Noto Color Emoji";
 }
 
+@layer base {
+    body {
+        @apply bg-[#0A1628];
+    }
+}
+
 @layer components {
     .card {
         background: rgba(15, 23, 42, 0.6);

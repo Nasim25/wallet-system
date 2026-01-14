@@ -2,41 +2,41 @@
     <div class="relative mx-auto overflow-hidden rounded-3xl
                bg-linear-to-br from-pink-500 to-purple-700
                p-8 text-white shadow-2xl shadow-electric-500/20">
-        <h1 class="mb-4 text-2xl font-bold">Wallet Balance</h1>
-        <p>Your balance: ৳ {{ balance }}</p>
+        <h1 class="mb-4 text-2xl font-bold">{{ $t("wallet") }} {{ $t("balance") }}</h1>
+        <p>{{ $t("my_wallet") }} {{ balance }}</p>
 
         <!-- Agreement -->
         <button v-if="!hasAgreement" @click="createAgreement" :disabled="loading" class="mt-10 bg-white px-4 py-2 rounded-lg
                    text-purple-700 hover:bg-gray-100
                    transition disabled:opacity-50">
-            <span v-if="!loading">Create Agreement</span>
-            <span v-else>Processing...</span>
+            <span v-if="!loading">{{ $t("create_agreement") }}</span>
+            <span v-else>{{ $t("processing") }}</span>
         </button>
 
         <!-- Deposit -->
         <button v-else @click="openDepositModal" class="mt-10 bg-white px-4 py-2 rounded-lg
                    text-purple-700 hover:bg-gray-100 transition cursor-pointer">
-            Deposit Money
+            {{ $t("deposit") }}
         </button>
     </div>
 
     <!-- Deposit Modal -->
     <div v-if="showDepositModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div class="w-full max-w-sm rounded-2xl bg-white p-6 text-gray-800">
-            <h2 class="mb-4 text-xl font-bold">Deposit Amount</h2>
+            <h2 class="mb-4 text-xl font-bold">{{  $t("deposit_amount") }}</h2>
 
-            <input v-model.number="depositAmount" type="number" min="10" placeholder="Enter amount"
+            <input v-model.number="depositAmount" type="number" min="10" :placeholder="$t('enter_amount')"
                 class="w-full rounded-lg border p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-purple-500" />
 
             <div class="flex justify-end gap-3">
                 <button @click="closeDepositModal" class="rounded-lg bg-gray-200 px-4 py-2 cursor-pointer">
-                    Cancel
+                    {{  $t("cancel") }}
                 </button>
 
                 <button @click="confirmDeposit" :disabled="loading || !isValidAmount" class="rounded-lg bg-purple-600 px-4 py-2 text-white
                            disabled:opacity-50 cursor-pointer">
-                    <span v-if="!loading">Confirm</span>
-                    <span v-else>Processing...</span>
+                    <span v-if="!loading">{{  $t("confirm") }}</span>
+                    <span v-else>{{ $t("processing") }}</span>
                 </button>
             </div>
         </div>

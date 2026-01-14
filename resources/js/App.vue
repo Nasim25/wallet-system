@@ -1,31 +1,36 @@
 <template>
     <div class="min-h-screen bg-[#0A1628]">
-        <!-- <Navbar /> -->
-
-        <Sidebar />
-        <main class="flex-1 p-6 ml-64">
-            <div class="p-4 pb-10 flex justify-between items-center">
-                <h1 class="text-white font-bold text-2xl">Welcome back {{ user?.name }}</h1>
-                <div>
-                    <LanguageSwitcher />
-                    <button class="bg-red-500 px-3 py-1 rounded text-white ml-4">Logout</button>
+        <!-- Sidebar + Main (only show when authenticated) -->
+        <template v-if="user">
+            <Sidebar />
+            <main class="flex-1 p-6 ml-64">
+                <div class="p-4 pb-10 flex justify-between items-center">
+                    <h1 class="text-white font-bold text-2xl">{{ $t("welcome") }} {{ user?.name }}</h1>
+                    <div>
+                        <LanguageSwitcher />
+                        <button @click="logout" class="bg-red-500 px-3 py-1 rounded text-white ml-4">{{ $t("logout") }}</button>
+                    </div>
                 </div>
-            </div>
+                <router-view />
+            </main>
+        </template>
+
+        <!-- Login/Register view (when not authenticated) -->
+        <template v-else>
             <router-view />
-        </main>
+        </template>
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import Navbar from "./components/Navbar.vue";
 import Sidebar from "./components/Sidebar.vue";
 import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
-import axios from "axios"; // Make sure axios installed and imported
+import axios from "axios";
 
 const router = useRouter();
-const user = ref(null); // reactive state
+const user = ref(null);
 
 onMounted(async () => {
     const token = localStorage.getItem("token");
@@ -34,17 +39,28 @@ onMounted(async () => {
             const res = await axios.get("/api/user", {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            user.value = res.data; // update reactive ref
+            user.value = res.data;
         } catch (err) {
             localStorage.removeItem("token");
             router.push("/login");
         }
-    } else {
-        router.push("/login");
     }
 });
-</script>
 
-<style>
-/* global style if needed */
-</style>
+async function logout() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+        await axios.post(
+            "/api/logout",
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+    } finally {
+        localStorage.removeItem("token");
+        user.value = null;
+        router.push("/login");
+    }
+}
+</script>

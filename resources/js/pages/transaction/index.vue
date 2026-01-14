@@ -1,10 +1,10 @@
 <template>
     <div class="p-6 bg-white rounded-2xl shadow-lg">
         <div class="flex items-center justify-between">
-            <h2 class="text-xl font-bold mb-4">Transaction History</h2>
+            <h2 class="text-xl font-bold mb-4">{{ $t("transaction_history") }}</h2>
             <button @click="downloadStatement"
-                class="px-2 py-2 mb-2 bg-pink-500 text-white rounded-lg hover:bg-pink-500 cursor-pointer ">Download
-                Statement</button>
+                class="px-2 py-2 mb-2 bg-pink-500 text-white rounded-lg hover:bg-pink-500 cursor-pointer ">{{
+                    $t("download_statement") }}</button>
         </div>
 
 
@@ -13,7 +13,7 @@
 
         <!-- Empty State -->
         <div v-else-if="transactions.length === 0" class="text-center py-10 text-gray-500">
-            No transactions found.
+            {{ $t("no_transactions") }}
         </div>
 
         <!-- Table -->
@@ -21,12 +21,13 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Date</th>
-                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Transaction ID</th>
-                        <th class="px-4 py-2 text-right text-sm font-medium text-gray-700">Amount</th>
-                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Type</th>
-                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Status</th>
-                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Action</th>
+                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">{{ $t("date") }}</th>
+                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">{{ $t("transaction_id") }}
+                        </th>
+                        <th class="px-4 py-2 text-right text-sm font-medium text-gray-700">{{ $t("amount") }}</th>
+                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">{{ $t("type") }}</th>
+                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">{{ $t("status") }}</th>
+                        <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">{{ $t("action") }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -52,7 +53,7 @@
                                         ? 'bg-red-500 text-white hover:bg-red-600'
                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                 ]">
-                                Refund
+                                {{ $t("refund") }}
                             </button>
                         </td>
                     </tr>
@@ -82,19 +83,19 @@
         <div v-if="showRefundModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
 
             <div class="bg-white w-full max-w-md rounded-2xl shadow-lg p-6">
-                <h3 class="text-lg font-semibold mb-4">Refund Transaction</h3>
+                <h3 class="text-lg font-semibold mb-4">{{ $t("refund_transaction") }}</h3>
 
                 <div class="space-y-3">
                     <div class="text-sm text-gray-600">
-                        Refundable Amount:
+                        {{ $t("refundable_amount") }}
                         <span class="font-semibold text-gray-900">
-                            ৳ {{ selectedTx?.amount }}
+                            {{ selectedTx?.amount }}
                         </span>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Refund Amount
+                            {{ $t("refund_amount") }}
                         </label>
                         <input type="number" v-model="refundAmount" :max="selectedTx?.amount" min="1"
                             class="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-pink-300"
@@ -102,23 +103,23 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Refund Reason
+                            {{ $t("refund_reason") }}
                         </label>
                         <input type="text" v-model="refundReason"
                             class="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-pink-300"
-                            placeholder="Enter reason for refund" />
+                            :placeholder="$t('refund_reason')" />
                     </div>
                 </div>
 
                 <div class="flex justify-end gap-3 mt-6">
                     <button @click="closeRefundModal" class="px-4 py-2 rounded-lg border hover:bg-gray-100">
-                        Cancel
+                        {{ $t("cancel") }}
                     </button>
 
                     <button @click="confirmRefund"
                         :disabled="refundAmount <= 0 || refundAmount > selectedTx?.amount || refundLoading"
                         class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 disabled:opacity-50">
-                        {{ refundLoading ? 'Processing...' : 'Confirm Refund' }}
+                        {{ refundLoading ? $t("processing") : $t("confirm_refund") }}
                     </button>
                 </div>
             </div>
