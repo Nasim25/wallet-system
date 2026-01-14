@@ -6,7 +6,7 @@
         <input v-model="password" type="password" placeholder="Password" class="w-full p-2 border mb-2 rounded text-white" />
         <input v-model="password_confirmation" type="password" placeholder="Confirm Password"
             class="w-full p-2 border mb-4 rounded text-white" />
-        <button @click="register" class="bg-blue-500 text-white w-full py-2 rounded">
+        <button @click="register" class="bg-blue-500 text-white w-full py-2 rounded cursor-pointer">
             Register
         </button>
         <p class="text-red-500 mt-2">{{ message }}</p>

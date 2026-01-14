@@ -71,7 +71,9 @@ class BkashController extends Controller
                     });
                 }
 
-                return $this->redirectSuccess('payment=success');
+                return redirect()->to(
+                    rtrim(config('app.url'), '/') . "/transactions?payment=success"
+                );
             }
         );
     }

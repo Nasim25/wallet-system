@@ -1,5 +1,5 @@
 <template>
-    <select v-model="lang" @change="createAgreement" class=" bg-green-700 p-2 rounded-md text-white">
+    <select v-model="lang" @change="createAgreement" class=" bg-green-700 p-2 rounded-md text-white cursor-pointer">
         <option value="en">English</option>
         <option value="bn">বাংলা</option>
     </select>

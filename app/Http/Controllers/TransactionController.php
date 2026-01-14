@@ -19,6 +19,18 @@ class TransactionController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
+        $transactions->getCollection()->transform(function ($transaction) {
+            return [
+                'id' => $transaction->id,
+                'type' => $transaction->type,
+                'amount' => $transaction->amount,
+                'trx_id' => $transaction->trx_id,
+                'payment_id' => $transaction->payment_id,
+                'created_at' => $transaction->created_at->format('d M Y') . ' ' . $transaction->created_at->format('h:i A'),
+                'status' => $transaction->status,
+            ];
+        });
+
         return response()->json($transactions);
     }
 
@@ -42,7 +54,7 @@ class TransactionController extends Controller
         ])->render();
 
         // Call Gotenberg to generate PDF
-        $response = Http::asMultipart()->post( env('GOTENBERG_URL').'/forms/chromium/convert/html', [
+        $response = Http::asMultipart()->post(env('GOTENBERG_URL') . '/forms/chromium/convert/html', [
             [
                 'name' => 'files',
                 'contents' => $html,

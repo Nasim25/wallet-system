@@ -50,7 +50,7 @@
                                 :class="[
                                     'px-3 text-sm py-1 rounded-lg',
                                     tx.type === 'credit' && tx.amount > 0
-                                        ? 'bg-red-500 text-white hover:bg-red-600'
+                                        ? 'bg-red-500 text-white hover:bg-red-600 cursor-pointer'
                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                 ]">
                                 {{ $t("refund") }}
@@ -112,13 +112,13 @@
                 </div>
 
                 <div class="flex justify-end gap-3 mt-6">
-                    <button @click="closeRefundModal" class="px-4 py-2 rounded-lg border hover:bg-gray-100">
+                    <button @click="closeRefundModal" class="px-4 py-2 rounded-lg border hover:bg-gray-100 cursor-pointer">
                         {{ $t("cancel") }}
                     </button>
 
                     <button @click="confirmRefund"
                         :disabled="refundAmount <= 0 || refundAmount > selectedTx?.amount || refundLoading"
-                        class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 disabled:opacity-50">
+                        class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 cursor-pointer">
                         {{ refundLoading ? $t("processing") : $t("confirm_refund") }}
                     </button>
                 </div>
@@ -130,6 +130,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 
@@ -146,6 +147,8 @@ const selectedTx = ref(null)
 const refundAmount = ref(0)
 const refundReason = ref('')
 const refundLoading = ref(false)
+
+const route = useRoute()
 
 /**
  * Fetch transactions
@@ -270,5 +273,11 @@ function closeRefundModal() {
 }
 
 
-onMounted(() => fetchTransactions())
+onMounted(async () => {
+    await fetchTransactions()
+
+    if (route.query.payment === 'success') {
+        toast.success('Deposit successful')
+    }
+})
 </script>

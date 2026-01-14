@@ -65,7 +65,7 @@ Using Gotenberg microservice instead of DomPDF:
 ### Step 1: Clone Repository
 ```bash
 git clone https://github.com/Nasim25/wallet-system.git
-cd bkash-wallet
+cd wallet-system
 ```
 
 ### Step 2: Install Dependencies
@@ -82,6 +82,8 @@ php artisan key:generate
 
 Edit `.env`:
 ```env
+APP_URL=http://127.0.0.1:8000/
+
 DB_DATABASE=bkash_wallet
 DB_USERNAME=root
 DB_PASSWORD=your_password
@@ -115,7 +117,7 @@ npm run dev
 php artisan serve
 ```
 
-Visit: `http://localhost:8000`
+Visit: `http://127.0.0.1:8000`
 
 
 ## Author

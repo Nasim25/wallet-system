@@ -8,7 +8,7 @@
                     <h1 class="text-white font-bold text-2xl">{{ $t("welcome") }} {{ user?.name }}</h1>
                     <div>
                         <LanguageSwitcher />
-                        <button @click="logout" class="bg-red-500 px-3 py-1 rounded text-white ml-4">{{ $t("logout") }}</button>
+                        <button @click="logout" class="bg-red-500 px-3 py-1 rounded text-white ml-4 cursor-pointer">{{ $t("logout") }}</button>
                     </div>
                 </div>
                 <router-view />
