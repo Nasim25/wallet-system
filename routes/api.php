@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    Route::get('/transactions/statement', [TransactionController::class, 'downloadStatement'])->name('transactions.statement');
 
     Route::controller(WalletController::class)->group(function () {
         Route::get('/wallet', 'index');

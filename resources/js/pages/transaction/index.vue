@@ -2,7 +2,9 @@
     <div class="p-6 bg-white rounded-2xl shadow-lg">
         <div class="flex items-center justify-between">
             <h2 class="text-xl font-bold mb-4">Transaction History</h2>
-            <button class="px-2 py-2 mb-2 bg-pink-500 text-white rounded-lg hover:bg-pink-500 ">Download Statement</button>
+            <button @click="downloadStatement"
+                class="px-2 py-2 mb-2 bg-pink-500 text-white rounded-lg hover:bg-pink-500 cursor-pointer ">Download
+                Statement</button>
         </div>
 
 
@@ -129,6 +131,42 @@ const pages = computed(() => {
     for (let i = 1; i <= lastPage.value; i++) arr.push(i)
     return arr
 })
+
+async function downloadStatement() {
+    const token = localStorage.getItem('token')
+    if (!token) return
+
+    try {
+        const response = await axios.get('/api/transactions/statement', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            responseType: 'blob',
+        })
+
+        // Create blob URL
+        const blob = new Blob([response.data])
+        const url = window.URL.createObjectURL(blob)
+
+        // Create temporary link
+        const link = document.createElement('a')
+        link.href = url
+
+        // File name (backend header > fallback)
+        link.download = 'transaction-statement.pdf'
+        document.body.appendChild(link)
+
+        link.click()
+
+        // Cleanup
+        link.remove()
+        window.URL.revokeObjectURL(url)
+    } catch (error) {
+        console.error('Failed to download statement', error)
+        alert('Failed to download statement')
+    }
+}
+
 
 
 onMounted(() => fetchTransactions())
