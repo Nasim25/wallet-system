@@ -29,7 +29,7 @@ class PaymentService
         ]);
     }
 
-    public function refundPayment(string $paymentId, string $trxId, float $amount, string $reason, string $gatewayName = 'bkash'): array
+    public function refundPayment(string $paymentId, string $trxId, float $amount, string $reason, string $gatewayName = 'bkash')
     {
         $gateway = PaymentManager::make($gatewayName);
 
